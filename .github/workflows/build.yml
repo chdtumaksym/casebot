@@ -12,13 +12,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup MinGW
-      uses: egor-tensin/setup-mingw@v2
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
       with:
-        platform: x64
+        update: true
+        install: >-
+          mingw-w64-x86_64-toolchain
 
     - name: Compile Bot
-      run: g++ bot.cpp -o casebot.exe -lgdi32 -luser32
+      shell: msys2 {0}
+      run: |
+        g++ bot.cpp -o casebot.exe -lgdi32 -luser32
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
