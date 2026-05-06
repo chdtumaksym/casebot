@@ -3,6 +3,8 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <cstdint>
+#include <ctime>
 
 // Настройки захвата
 const int SCAN_W = 400;
@@ -33,7 +35,7 @@ void HumanMove(int dx, int dy) {
         input.mi.dx = static_cast<long>((dx / steps) + (rand() % 3 - 1));
         input.mi.dy = static_cast<long>((dy / steps) + (rand() % 3 - 1));
         SendInput(1, &input, sizeof(INPUT));
-        if(i < steps) Sleep(1);
+        if(i < (int)steps) Sleep(1);
     }
 }
 
@@ -57,8 +59,8 @@ void Action(bool shoot) {
 }
 
 int main() {
-    srand(GetTickCount());
-    std::cout << "--- CASEBOT V2: MAXIMUM EFFICIENCY ---" << std::endl;
+    srand(static_cast<unsigned int>(time(NULL)));
+    std::cout << "--- CASEBOT V2.1: FIXED HEADERS ---" << std::endl;
     std::cout << "STATUS: READY. PRESS 'Q' TO ABORT." << std::endl;
 
     int screenX = GetSystemMetrics(SM_CXSCREEN);
@@ -79,8 +81,10 @@ int main() {
             for (int x = 0; x < SCAN_W; x++) {
                 uint32_t p = pixels[y * SCAN_W + x];
                 int r = (p >> 16) & 255, g = (p >> 8) & 255, b = p & 255;
-                if (abs(r - TARGET_COLOR_R) < TOLERANCE && abs(g - TARGET_COLOR_G) < TOLERANCE && abs(b - TARGET_COLOR_B) < TOLERANCE) {
-                    float distFromCenter = sqrt(pow(x - SCAN_W/2, 2) + pow(y - SCAN_H/2, 2));
+                if (std::abs(r - TARGET_COLOR_R) < TOLERANCE && 
+                    std::abs(g - TARGET_COLOR_G) < TOLERANCE && 
+                    std::abs(b - TARGET_COLOR_B) < TOLERANCE) {
+                    float distFromCenter = std::sqrt(std::pow(static_cast<float>(x - SCAN_W/2), 2) + std::pow(static_cast<float>(y - SCAN_H/2), 2));
                     if(distFromCenter < FOV_RADIUS) {
                         minX = std::min(minX, x); maxX = std::max(maxX, x);
                         minY = std::min(minY, y); maxY = std::max(maxY, y);
@@ -94,16 +98,15 @@ int main() {
             int w = maxX - minX, h = maxY - minY;
             if (h > w * RATIO_THRESHOLD) {
                 int targetX = (minX + maxX) / 2 - SCAN_W / 2;
-                int targetY = minY + (h / 6) - SCAN_H / 2; // Целимся четко в верхнюю часть (голова)
+                int targetY = minY + (h / 6) - SCAN_H / 2; // Целимся в голову
 
                 HumanMove(targetX, targetY);
-                if (abs(targetX) < 15 && abs(targetY) < 15) {
+                if (std::abs(targetX) < 15 && std::abs(targetY) < 15) {
                     Action(true);
                     Sleep(150 + rand() % 100);
                 }
             }
         } else {
-            // Поиск врага: медленный поворот
             static int spin = 3;
             INPUT rotate = {0};
             rotate.type = INPUT_MOUSE;
